@@ -1,96 +1,96 @@
 # Benco Dental Web Scraper
 
-Scraper para extraer productos de [shop.benco.com](https://shop.benco.com).
+Scraper to extract products from [shop.benco.com](https://shop.benco.com).
 
-## Datos Extraídos
+## Extracted Data
 
-| Campo | Descripción |
+| Field | Description |
 |-------|-------------|
-| `sku` | Identificador único del producto |
-| `name` | Nombre del producto |
-| `price` | Precio (cuando está disponible) |
-| `availability` | Estado de stock / fecha de envío |
-| `brand` | Marca del fabricante |
-| `product_category` | Categoría del producto |
-| `image_url` | URL de la imagen |
-| `product_url` | URL del producto |
-| `rating` | Calificación promedio |
-| `review_count` | Número de reviews |
+| `sku` | Unique product identifier |
+| `name` | Product name |
+| `price` | Price (when available) |
+| `availability` | Stock status / shipping date |
+| `brand` | Manufacturer brand |
+| `product_category` | Product category |
+| `image_url` | Image URL |
+| `product_url` | Product URL |
+| `rating` | Average rating |
+| `review_count` | Number of reviews |
 
-## Instalación
+## Installation
 
 ```bash
-# Crear entorno virtual
+# Create virtual environment
 python3 -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
 
-# Instalar dependencias
+# Install dependencies
 pip install -r requirements.txt
 ```
 
-## Configuración
+## Configuration
 
-Editar el archivo `.env`:
+Edit the `.env` file:
 
 ```env
-# Categoría a scrapear (nombre exacto del sitio)
+# Category to scrape (exact site name)
 CATEGORY_NAME=Acrylics & Relines
 
-# Páginas a scrapear (0 = todas)
+# Pages to scrape (0 = all)
 MAX_PAGES=2
 
-# Delay entre peticiones (segundos)
+# Delay between requests (seconds)
 MIN_DELAY=1
 MAX_DELAY=3
 
-# Tipo de almacenamiento: json o sqlite
+# Storage type: json or sqlite
 STORAGE_TYPE=json
 
-# Salida JSON (cuando STORAGE_TYPE=json)
+# JSON output (when STORAGE_TYPE=json)
 OUTPUT_FILE=productos.json
 
-# Base de datos SQLite (cuando STORAGE_TYPE=sqlite)
+# SQLite database (when STORAGE_TYPE=sqlite)
 DB_PATH=productos.db
 ```
 
-### Categorías de ejemplo
+### Example Categories
 
 - `Acrylics & Relines`
 - `Alloy`
 - `Anesthetic`
 - `Articulating`
 
-> El nombre debe coincidir exactamente con el sitio web.
+> The name must match exactly with the website.
 
-## Ejecución
+## Execution
 
 ```bash
 python main.py
 ```
 
-### Salida esperada
+### Expected Output
 
 ```
 ==================================================
 BENCO DENTAL SCRAPER
 ==================================================
-Categoría: Acrylics & Relines
-Max páginas: 2
+Category: Acrylics & Relines
+Max pages: 2
 Delay: 1.0-3.0s
 ==================================================
 
-[Página 1/2]
-  Categoría: Acrylics and Relines
-  Total en sitio: 1353 productos (57 páginas)
-  Detectados: 24 | Guardados: 24 | Omitidos: 0
-  Esperando 2.3s...
-[Página 2/2]
-  Detectados: 24 | Guardados: 24 | Omitidos: 0
+[Page 1/2]
+  Category: Acrylics and Relines
+  Total on site: 1353 products (57 pages)
+  Detected: 24 | Saved: 24 | Skipped: 0
+  Waiting 2.3s...
+[Page 2/2]
+  Detected: 24 | Saved: 24 | Skipped: 0
 
-Guardado en: productos.json
+Saved to: productos.json
 
 ==================================================
-ESTADÍSTICAS DE LA CORRIDA
+RUN STATISTICS
 ==================================================
 {
   "categoryUrl": "https://shop.benco.com/Search?q=...",
@@ -105,21 +105,21 @@ ESTADÍSTICAS DE LA CORRIDA
 ==================================================
 ```
 
-## Estructura del Proyecto
+## Project Structure
 
 ```
 test_scraping/
-├── main.py            # Orquestador principal
-├── scraper.py         # Extracción de datos (BencoScraper)
-├── storage.py         # Persistencia (JSON / SQLite)
-├── models.py          # Modelos de datos
-├── .env               # Configuración
-├── .gitignore         # Archivos ignorados
-├── requirements.txt   # Dependencias
+├── main.py            # Main orchestrator
+├── scraper.py         # Data extraction (BencoScraper)
+├── storage.py         # Persistence (JSON / SQLite)
+├── models.py          # Data models
+├── .env               # Configuration
+├── .gitignore         # Ignored files
+├── requirements.txt   # Dependencies
 └── README.md
 ```
 
-## Arquitectura
+## Architecture
 
 ```
 ┌─────────────┐     ┌─────────────┐     ┌─────────────────┐
@@ -133,14 +133,14 @@ test_scraping/
                                         └─────────────────┘
 ```
 
-| Módulo | Responsabilidad |
+| Module | Responsibility |
 |--------|-----------------|
-| `models.py` | Estructuras de datos (Config, Statistics) |
-| `scraper.py` | Extracción HTTP y parsing HTML |
-| `storage.py` | Persistencia con patrón Strategy |
-| `main.py` | Orquestación del flujo |
+| `models.py` | Data structures (Config, Statistics) |
+| `scraper.py` | HTTP extraction and HTML parsing |
+| `storage.py` | Persistence with Strategy pattern |
+| `main.py` | Flow orchestration |
 
-## Almacenamiento
+## Storage
 
 ### JSON (default)
 
@@ -149,7 +149,7 @@ STORAGE_TYPE=json
 OUTPUT_FILE=productos.json
 ```
 
-Genera un archivo JSON con estadísticas y productos.
+Generates a JSON file with statistics and products.
 
 ### SQLite
 
@@ -158,14 +158,14 @@ STORAGE_TYPE=sqlite
 DB_PATH=productos.db
 ```
 
-Crea tablas `products` y `statistics`. Los SKUs duplicados se omiten automáticamente.
+Creates `products` and `statistics` tables. Duplicate SKUs are automatically skipped.
 
 ```bash
-# Consultar datos
+# Query data
 sqlite3 productos.db "SELECT sku, name, price FROM products LIMIT 5;"
 ```
 
-## Formato de Salida (JSON)
+## Output Format (JSON)
 
 ```json
 {
@@ -196,26 +196,26 @@ sqlite3 productos.db "SELECT sku, name, price FROM products LIMIT 5;"
 }
 ```
 
-## Estadísticas
+## Statistics
 
-| Campo | Descripción |
+| Field | Description |
 |-------|-------------|
-| `categoryUrl` | URL de la categoría |
-| `totalDetected` | Productos encontrados |
-| `totalSaved` | Productos guardados (únicos) |
-| `totalSkipped` | Productos omitidos |
-| `missingPrice` | Productos sin precio |
-| `startedAt` | Inicio de ejecución |
-| `finishedAt` | Fin de ejecución |
-| `durationSeconds` | Duración total |
+| `categoryUrl` | Category URL |
+| `totalDetected` | Products found |
+| `totalSaved` | Products saved (unique) |
+| `totalSkipped` | Products skipped |
+| `missingPrice` | Products without price |
+| `startedAt` | Execution start |
+| `finishedAt` | Execution end |
+| `durationSeconds` | Total duration |
 
-## Limitaciones
+## Limitations
 
-- **Precios**: Solo disponibles para productos con botón "Add to Cart"
-- **Rate limiting**: Usar delays de 1-3 segundos
-- **Paginación**: 24 productos por página
+- **Prices**: Only available for products with "Add to Cart" button
+- **Rate limiting**: Use delays of 1-3 seconds
+- **Pagination**: 24 products per page
 
-## Dependencias
+## Dependencies
 
 ```
 requests>=2.28.0

@@ -20,23 +20,23 @@ wheels/
 .installed.cfg
 *.egg
 
-# ---------- Entorno Virtual ----------
+# ---------- Virtual Environment ----------
 venv/
 ENV/
 env/
 .venv/
 
-# ---------- Variables de Entorno ----------
+# ---------- Environment Variables ----------
 .env
 .env.local
 .env.*.local
 
-# ---------- Archivos de Salida ----------
+# ---------- Output Files ----------
 productos.json
 productos.db
 *.db
 
-# ---------- IDE / Editores ----------
+# ---------- IDE / Editors ----------
 .vscode/
 .idea/
 *.swp
@@ -46,7 +46,7 @@ productos.db
 .pydevproject
 .settings/
 
-# ---------- Sistema Operativo ----------
+# ---------- Operating System ----------
 .DS_Store
 .DS_Store?
 ._*

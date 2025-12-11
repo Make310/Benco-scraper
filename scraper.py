@@ -1,6 +1,6 @@
 """
-Scraper para Benco Dental.
-Extrae productos de shop.benco.com
+Benco Dental Scraper.
+Extracts products from shop.benco.com
 """
 
 import requests
@@ -15,7 +15,7 @@ from models import Config
 
 
 class BencoScraper:
-    """Clase encargada de extraer datos de las páginas de Benco"""
+    """Class responsible for extracting data from Benco pages"""
 
     BASE_URL = 'https://shop.benco.com'
 
@@ -26,8 +26,8 @@ class BencoScraper:
 
     def build_query_param(self, category: str, page: int = 1) -> str:
         """
-        Construye el parámetro 'q' codificado para la búsqueda.
-        El parámetro es JSON comprimido con gzip y codificado en Base64.
+        Builds the encoded 'q' parameter for the search.
+        The parameter is JSON compressed with gzip and encoded in Base64.
         """
         data = {
             "Categorization": {
@@ -53,8 +53,8 @@ class BencoScraper:
 
     def fetch_page(self, category: str, page: int) -> Optional[str]:
         """
-        Realiza la petición HTTP para obtener una página de productos.
-        Retorna None si hay error.
+        Makes the HTTP request to get a product page.
+        Returns None if there is an error.
         """
         try:
             params = {'q': self.build_query_param(category, page)}
@@ -71,22 +71,22 @@ class BencoScraper:
 
     def parse_products(self, html: str, seen_skus: set, category_name: str) -> tuple[list[dict], int, int]:
         """
-        Extrae los productos del HTML de la página.
+        Extracts products from the page HTML.
 
         Args:
-            html: HTML de la página
-            seen_skus: Set de SKUs ya vistos para evitar duplicados
-            category_name: Nombre de la categoría (del .env)
+            html: Page HTML
+            seen_skus: Set of already seen SKUs to avoid duplicates
+            category_name: Category name (from .env)
 
         Returns:
-            Tuple con (productos extraídos, total detectados, skipped)
+            Tuple with (extracted products, total detected, skipped)
         """
         soup = BeautifulSoup(html, 'html.parser')
         products = []
         detected = 0
         skipped = 0
 
-        # Extraer ratings del JSON-LD
+        # Extract ratings from JSON-LD
         ratings_map = self._extract_ratings_from_jsonld(soup)
 
         product_grid = soup.find('div', class_='product-grid')
@@ -98,7 +98,7 @@ class BencoScraper:
         for item in items:
             detected += 1
 
-            # Estructura base con todas las llaves
+            # Base structure with all keys
             product = {
                 'sku': '',
                 'name': '',
@@ -112,7 +112,7 @@ class BencoScraper:
                 'review_count': ''
             }
 
-            # Buscar el enlace del producto para SKU y nombre
+            # Find product link for SKU and name
             link = item.find('a', href=re.compile(r'/Product/'))
             if not link:
                 skipped += 1
@@ -120,7 +120,7 @@ class BencoScraper:
 
             href = link.get('href', '')
 
-            # Extraer SKU del href
+            # Extract SKU from href
             sku_match = re.search(r'/Product/([^/]+)/', href)
             if not sku_match:
                 skipped += 1
@@ -128,7 +128,7 @@ class BencoScraper:
 
             sku = sku_match.group(1)
 
-            # Saltar duplicados
+            # Skip duplicates
             if sku in seen_skus:
                 skipped += 1
                 continue
@@ -136,10 +136,10 @@ class BencoScraper:
             product['sku'] = sku
             seen_skus.add(sku)
 
-            # URL del producto
+            # Product URL
             product['product_url'] = f"{self.BASE_URL}{href.split('?')[0]}"
 
-            # Nombre del producto - limpiar texto extra
+            # Product name - clean extra text
             raw_name = link.get_text(strip=True)
             clean_name = re.sub(
                 r'(No Longer Available|In Stock.*|Out of Stock|Estimated Ship Date.*|\d{4}-\d{3}).*$',
@@ -148,21 +148,21 @@ class BencoScraper:
             ).strip()
             product['name'] = clean_name
 
-            # Imagen del producto
+            # Product image
             img = item.find('img')
             if img:
                 product['image_url'] = img.get('src', '')
 
-            # Extraer disponibilidad
+            # Extract availability
             product['availability'] = self._extract_availability(item)
 
-            # Extraer precio y marca del onclick
+            # Extract price and brand from onclick
             price, brand = self._extract_from_onclick(item)
             product['price'] = price
             product['brand'] = brand
             product['product_category'] = category_name
 
-            # Buscar rating por nombre del producto
+            # Find rating by product name
             if clean_name in ratings_map:
                 product['rating'] = ratings_map[clean_name].get('rating', '')
                 product['review_count'] = ratings_map[clean_name].get('review_count', '')
@@ -172,7 +172,7 @@ class BencoScraper:
         return products, detected, skipped
 
     def _extract_ratings_from_jsonld(self, soup: BeautifulSoup) -> dict:
-        """Extrae los ratings de los productos desde los JSON-LD."""
+        """Extracts product ratings from JSON-LD scripts."""
         ratings_map = {}
 
         for script in soup.find_all('script', type='application/ld+json'):
@@ -192,7 +192,7 @@ class BencoScraper:
         return ratings_map
 
     def _extract_availability(self, item) -> str:
-        """Extrae el texto de disponibilidad del producto."""
+        """Extracts the product availability text."""
         stock_patterns = [
             r'Estimated Ship Date \d{1,2}/\d{1,2}/\d{2,4}(?: - \d{1,2}/\d{1,2}/\d{2,4})?',
             r'In Stock in \w+',
@@ -212,8 +212,8 @@ class BencoScraper:
 
     def _extract_from_onclick(self, item) -> tuple[str, str]:
         """
-        Extrae precio y marca del onclick del botón Add to Cart.
-        Formato: QuantityChangeClick('SKU', 1, 'uuid', undefined, `Nombre`, 'Precio', `Marca`, 'Categoría')
+        Extracts price and brand from the Add to Cart button onclick.
+        Format: QuantityChangeClick('SKU', 1, 'uuid', undefined, `Name`, 'Price', `Brand`, 'Category')
         """
         price = ''
         brand = ''
@@ -233,7 +233,7 @@ class BencoScraper:
         return price, brand
 
     def get_category_info(self, html: str) -> dict:
-        """Extrae información de la categoría desde el JSON-LD."""
+        """Extracts category information from JSON-LD."""
         soup = BeautifulSoup(html, 'html.parser')
 
         for script in soup.find_all('script', type='application/ld+json'):

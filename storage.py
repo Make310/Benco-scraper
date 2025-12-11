@@ -1,6 +1,6 @@
 """
-Módulo de almacenamiento de datos.
-Implementa el patrón Strategy para soportar múltiples backends.
+Data storage module.
+Implements the Strategy pattern to support multiple backends.
 """
 
 import json
@@ -15,11 +15,11 @@ Base = declarative_base()
 
 
 # ===========================================
-# MODELO SQLALCHEMY
+# SQLALCHEMY MODEL
 # ===========================================
 
 class ProductModel(Base):
-    """Modelo de producto para SQLAlchemy"""
+    """Product model for SQLAlchemy"""
     __tablename__ = 'products'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -37,7 +37,7 @@ class ProductModel(Base):
 
 
 class StatisticsModel(Base):
-    """Modelo de estadísticas para SQLAlchemy"""
+    """Statistics model for SQLAlchemy"""
     __tablename__ = 'statistics'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -53,54 +53,54 @@ class StatisticsModel(Base):
 
 
 # ===========================================
-# CLASE ABSTRACTA BASE
+# BASE ABSTRACT CLASS
 # ===========================================
 
 class BaseStorage(ABC):
-    """Clase abstracta base para almacenamiento"""
+    """Base abstract class for storage"""
 
     @abstractmethod
     def save(self, data: Dict[str, Any]) -> bool:
         """
-        Guarda los datos extraídos.
+        Saves the extracted data.
 
         Args:
-            data: Diccionario con 'statistics' y 'products'
+            data: Dictionary with 'statistics' and 'products'
 
         Returns:
-            True si se guardó correctamente, False en caso de error
+            True if saved successfully, False on error
         """
         pass
 
 
 # ===========================================
-# IMPLEMENTACIÓN JSON
+# JSON IMPLEMENTATION
 # ===========================================
 
 class JsonStorage(BaseStorage):
-    """Almacenamiento en formato JSON"""
+    """Storage in JSON format"""
 
     def __init__(self, filepath: str, indent: int = 2):
         self.filepath = filepath
         self.indent = indent
 
     def save(self, data: Dict[str, Any]) -> bool:
-        """Guarda los datos en formato JSON."""
+        """Saves the data in JSON format."""
         try:
             with open(self.filepath, 'w', encoding='utf-8') as f:
                 json.dump(data, f, indent=self.indent, ensure_ascii=False)
             return True
         except IOError as e:
-            print(f"[ERROR] No se pudo guardar el archivo JSON: {e}")
+            print(f"[ERROR] Could not save JSON file: {e}")
             return False
 
 
 # ===========================================
-# IMPLEMENTACIÓN SQLALCHEMY
+# SQLALCHEMY IMPLEMENTATION
 # ===========================================
 
 class SqlAlchemyStorage(BaseStorage):
-    """Almacenamiento en base de datos SQLite usando SQLAlchemy"""
+    """Storage in SQLite database using SQLAlchemy"""
 
     def __init__(self, db_path: str = 'productos.db'):
         self.db_path = db_path
@@ -109,11 +109,11 @@ class SqlAlchemyStorage(BaseStorage):
         self.Session = sessionmaker(bind=self.engine)
 
     def save(self, data: Dict[str, Any]) -> bool:
-        """Guarda los datos en SQLite."""
+        """Saves the data in SQLite."""
         try:
             session = self.Session()
 
-            # Guardar estadísticas
+            # Save statistics
             stats_data = data.get('statistics', {})
             stats = StatisticsModel(
                 category_url=stats_data.get('categoryUrl', ''),
@@ -127,13 +127,13 @@ class SqlAlchemyStorage(BaseStorage):
             )
             session.add(stats)
 
-            # Guardar productos
+            # Save products
             products = data.get('products', [])
             saved_count = 0
             skipped_count = 0
 
             for product_data in products:
-                # Verificar si el SKU ya existe
+                # Check if SKU already exists
                 existing = session.query(ProductModel).filter_by(
                     sku=product_data.get('sku', '')
                 ).first()
@@ -160,11 +160,11 @@ class SqlAlchemyStorage(BaseStorage):
             session.commit()
             session.close()
 
-            print(f"  [DB] Guardados: {saved_count} | Ya existían: {skipped_count}")
+            print(f"  [DB] Saved: {saved_count} | Already existed: {skipped_count}")
             return True
 
         except Exception as e:
-            print(f"[ERROR] No se pudo guardar en la base de datos: {e}")
+            print(f"[ERROR] Could not save to database: {e}")
             return False
 
 
@@ -173,21 +173,21 @@ class SqlAlchemyStorage(BaseStorage):
 # ===========================================
 
 class StorageFactory:
-    """Factory para crear instancias de storage según configuración"""
+    """Factory to create storage instances based on configuration"""
 
     @staticmethod
     def create(storage_type: str, **kwargs) -> BaseStorage:
         """
-        Crea una instancia de storage según el tipo especificado.
+        Creates a storage instance based on the specified type.
 
         Args:
-            storage_type: 'json' o 'sqlite'
-            **kwargs: Argumentos adicionales para el storage
+            storage_type: 'json' or 'sqlite'
+            **kwargs: Additional arguments for the storage
                 - json: filepath, indent
                 - sqlite: db_path
 
         Returns:
-            Instancia de BaseStorage
+            BaseStorage instance
         """
         storage_type = storage_type.lower()
 
@@ -201,4 +201,4 @@ class StorageFactory:
                 db_path=kwargs.get('db_path', 'productos.db')
             )
         else:
-            raise ValueError(f"Tipo de storage no soportado: {storage_type}")
+            raise ValueError(f"Unsupported storage type: {storage_type}")

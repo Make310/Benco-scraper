@@ -1,5 +1,5 @@
 """
-Modelos de datos para el scraper.
+Data models for the scraper.
 """
 
 import os
@@ -12,7 +12,7 @@ load_dotenv(override=True)
 
 @dataclass
 class Config:
-    """Configuración del scraper cargada desde .env"""
+    """Scraper configuration loaded from .env"""
     category_name: str = field(default_factory=lambda: os.getenv('CATEGORY_NAME', 'Acrylics & Relines'))
     max_pages: int = field(default_factory=lambda: int(os.getenv('MAX_PAGES', '2')))
     min_delay: float = field(default_factory=lambda: float(os.getenv('MIN_DELAY', '1')))
@@ -32,7 +32,7 @@ class Config:
 
 @dataclass
 class Statistics:
-    """Estadísticas de la corrida del scraper"""
+    """Scraper run statistics"""
     categoryUrl: str = ''
     totalDetected: int = 0
     totalSaved: int = 0
@@ -46,9 +46,9 @@ class Statistics:
         return asdict(self)
 
     def print_summary(self):
-        """Imprime el resumen de estadísticas en consola."""
+        """Prints the statistics summary to console."""
         print("\n" + "=" * 50)
-        print("ESTADÍSTICAS DE LA CORRIDA")
+        print("RUN STATISTICS")
         print("=" * 50)
         print(json.dumps(self.to_dict(), indent=2))
         print("=" * 50)
